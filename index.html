@@ -336,24 +336,40 @@
   }
 
   // ====== نسخ النص ======
-  function copyText(){
-    var p = collect();
-    var text = OFFICE + "\n";
-    text += "التاريخ: " + (p.stamp || nowStamp()) + "\n";
-    text += "بيان: " + (p.notes || "") + "\n";
-    text += "قيدنا: " + (p.transactionType === "وارد" ? "لنا" : "لكم") + "\n";
-    text += "مبلغ وقدره: " + (p.amount || "") + " " + (p.currency || "") + "\n";
-    
-    // نسخ النص إلى الحافظة
+  // ====== نسخ النص ======
+function copyText() {
+  var p = collect();
+  var text =
+    "Cash Group company\n\n" +
+    "📌 حوالة: " + (p.transactionType || "—") + "\n" +
+    "من حساب: " + (p.sender || "—") + "\n\n" +
+    "📅 التاريخ: " + (p.stamp || nowStamp()) + "\n" +
+    "* العميل: " + (p.recvName || "—") + "\n" +
+    "* المبلغ: " + (p.amount || "—") + " " + (p.currency || "") + "\n" +
+    "* الكود: " + (p.moveCode || "—") + "\n" +
+    "* البيان: " + (p.notes || "—") + "\n\n" +
+    "📍 العنوان: " + ADDRESS_HTML.replace(/<br>/g, " ").replace(/<[^>]+>/g, "") +
+    " — " + PHONES.join(" — ");
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        alert("تم نسخ النص إلى الحافظة ✅");
+      })
+      .catch(err => {
+        console.error("خطأ في النسخ:", err);
+        alert("تعذر نسخ النص، جرب يدويًا.");
+      });
+  } else {
     var textarea = document.createElement("textarea");
     textarea.value = text;
     document.body.appendChild(textarea);
     textarea.select();
     document.execCommand("copy");
     document.body.removeChild(textarea);
-    
-    alert("تم نسخ النص إلى الحافظة");
+    alert("تم نسخ النص إلى الحافظة ✅");
   }
+}
 
   // ====== نافذة طباعة نسخة الزبون ======
   function openCustomerPrint(item){
