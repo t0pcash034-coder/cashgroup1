@@ -31,7 +31,7 @@
       "name": "إرسال حوالة",
       "short_name": "إرسال",
       "description": "إرسال حوالة جديدة بسرعة",
-      "url": "/Zmx.html",
+      "url": "/index.html",
       "icons": [
         {
           "src": "icon-192.png",
@@ -48,3 +48,4 @@
     }
   ]
 }
+
