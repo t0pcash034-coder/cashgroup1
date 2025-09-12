@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>كاش كروب للحوالات</title>
+<title>كاش كروب للحوالات - النظام المتكامل</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   body{margin:0;background:#e6f1ff;font-family:Tahoma, Arial, sans-serif;color:#123}
@@ -21,14 +21,43 @@
   .btn.alt{background:#0a66ff}
   .btn.print{background:#14853b}
   .btn.copy{background:#8e44ad}
+  .btn.expense{background:#e74c3c}
+  .btn.report{background:#9b59b6}
+  .btn.settings{background:#34495e}
   .box{background:#f4f9ff;border:1px solid #dce9ff;border-radius:10px;padding:12px;margin-top:12px}
   .archive{max-height:280px;overflow:auto;border:1px solid #dce9ff;border-radius:10px;background:#fbfdff;padding:10px}
   .rowLine{border-bottom:1px dashed #e4eefc;padding:8px 4px}
   .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:center}
   .modal-content{background:white;padding:20px;border-radius:12px;width:400px;max-width:90%}
+  .modal-wide{width:600px}
   .account-item{cursor:pointer;padding:10px;border-bottom:1px solid #eee;margin:5px 0}
   .account-item:hover{background:#f5f5f5}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid #dce9ff;padding-bottom:12px}
+  .tab{background:#e6f1ff;padding:10px 16px;border-radius:8px;cursor:pointer;border:1px solid #cfe0ff}
+  .tab.active{background:#0a66ff;color:white}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  table{width:100%;border-collapse:collapse;margin:12px 0}
+  th,td{padding:10px;text-align:right;border:1px solid #dce9ff}
+  th{background:#f0f5ff}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:16px;margin:16px 0}
+  .stat-card{background:#f7fbff;border:1px solid #dce9ff;border-radius:10px;padding:16px;text-align:center}
+  .stat-value{font-size:24px;font-weight:bold;color:#004080}
+  .stat-label{color:#5b6a7d;font-size:14px}
   @media print{.no-print{display:none!important}}
+ 
+
+/* تعديل زر تسجيل الخروج */
+#btnLogout {
+margin-left: auto;
+background:#ff4d4f;
+color:#fff;
+border:none;
+border-radius:8px;
+padding:10px 16px;
+cursor:pointer;
+}
+
 </style>
 </head>
 <body>
@@ -38,103 +67,266 @@
       <div class="logo">CG</div>
       <div>
         <h1>كاش كروب للحوالات</h1>
-        <div class="muted">نظام المكتب + نسخة الزبون للطباعة</div>
+        <div class="muted">نظام متكامل لإدارة الحوالات والمصاريف</div>
       </div>
     </div>
 
-    <!-- إدارة الحسابات -->
-    <div class="row" style="margin-bottom: 12px;">
-      <button class="btn" id="btnAddAccount">+ اضافة حساب</button>
-      <button class="btn alt" id="btnViewAccounts">قائمة الحسابات</button>
-    </div>
+   <!-- القوائم الرئيسية -->
+<div class="tabs">
+<div class="tab active" data-tab="main">الحوالات</div>
+<div class="tab" data-tab="expenses">المصاريف الشخصية</div>
+<div class="tab" data-tab="reports">التقارير والإحصائيات</div>
+<div class="tab" data-tab="settings">الإعدادات</div>
+<button id="btnLogout">🚪 تسجيل الخروج</button>
+</div>
 
-    <!-- المرسل (من الحسابات المضافة) -->
-    <label>المرسل:</label>
-    <select id="sender">
-      <option value="">-- اختر الحساب --</option>
-    </select>
+    <!-- قسم الحوالات الرئيسي -->
+    <div class="tab-content active" id="main-tab">
+      <!-- إدارة الحسابات -->
+      <div class="row" style="margin-bottom: 12px;">
+        <button class="btn" id="btnAddAccount">+ اضافة حساب</button>
+        <button class="btn alt" id="btnViewAccounts">قائمة الحسابات</button>
+      </div>
 
-    <div class="row">
-      <div>
-        <label>نوع العملية:</label>
-        <select id="transactionType">
-          <option value="وارد">وارد</option>
-          <option value="صادر">صادر</option>
-        </select>
-      </div>
-      <div>
-        <label>عملة التحويل:</label>
-        <select id="currency">
-          <option value="دولار">دولار</option>
-          <option value="يورو">يورو</option>
-          <option value="ليرة تركية">ليرة تركية</option>
-        </select>
-      </div>
-    </div>
+      <!-- المرسل (من الحسابات المضافة) -->
+      <label>المرسل:</label>
+      <select id="sender">
+        <option value="">-- اختر الحساب --</option>
+      </select>
 
-    <div class="row">
-      <div>
-        <label>اسم المستلم:</label>
-        <input id="recvName" placeholder="اكتب اسم المستلم">
-      </div>
-      <div>
-        <label>رقم المستلم (هاتف):</label>
-        <input id="recvPhone" placeholder="اكتب رقم المستلم">
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>المبلغ:</label>
-        <input id="amount" type="number" placeholder="مثلًا 10000">
-      </div>
-      <div>
-        <label>بيان:</label>
-        <input id="notes" placeholder="اختياري">
-      </div>
-    </div>
-
-    <div class="row">
-      <div>
-        <label>كود الحركة:</label>
-        <div class="row">
-          <input id="moveCode" placeholder="توليد تلقائي بالزر">
-          <button class="btn" id="btnCode" title="اختصار توليد الكود">7119</button>
+      <div class="row">
+        <div>
+          <label>نوع العملية:</label>
+          <select id="transactionType">
+            <option value="وارد">وارد</option>
+            <option value="صادر">صادر</option>
+          </select>
         </div>
-        <div class="muted">التنسيق: أرقام-حرف-أرقام (مثل 36425-A-317)</div>
-      </div>
-      <div>
-        <label>التاريخ والوقت:</label>
-        <div class="row">
-          <input id="stamp" placeholder="توليد الآن بالزر">
-          <button class="btn alt" id="btnTime" title="اختصار توقيت الآن">1234</button>
+        <div>
+          <label>عملة التحويل:</label>
+          <select id="currency">
+            <option value="دولار">دولار</option>
+            <option value="يورو">يورو</option>
+            <option value="ليرة تركية">ليرة تركية</option>
+          </select>
         </div>
-        <div class="muted">يعتمد على ساعة جهازك (24 ساعة)</div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>اسم المستلم:</label>
+          <input id="recvName" placeholder="اكتب اسم المستلم">
+        </div>
+        <div>
+          <label>رقم المستلم (هاتف):</label>
+          <input id="recvPhone" placeholder="اكتب رقم المستلم">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>المبلغ:</label>
+          <input id="amount" type="number" placeholder="مثلًا 10000">
+        </div>
+        <div>
+          <label>بيان:</label>
+          <input id="notes" placeholder="اختياري">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>كود الحركة:</label>
+          <div class="row">
+            <input id="moveCode" placeholder="توليد تلقائي بالزر">
+            <button class="btn" id="btnCode" title="اختصار توليد الكود">7119</button>
+          </div>
+          <div class="muted">التنسيق: أرقام-حرف-أرقام (مثل 36425-A-317)</div>
+        </div>
+        <div>
+          <label>التاريخ والوقت:</label>
+          <div class="row">
+            <input id="stamp" placeholder="توليد الآن بالزر">
+            <button class="btn alt" id="btnTime" title="اختصار توقيت الآن">1234</button>
+          </div>
+          <div class="muted">يعتمد على ساعة جهازك (24 ساعة)</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="btnSave">حفظ السجل + نسخة الزبون</button>
+        <button class="btn copy no-print" id="btnCopyText">نسخ نصي</button>
+        <button class="btn print no-print" id="btnPrintAgain" title="طباعة آخر نسخة">طباعة آخر نسخة</button>
+      </div>
+
+      <div class="box">
+        <b>معاينة:</b>
+        <div id="preview" class="muted" style="margin-top:6px">املأ الحقول ثم استخدم 7119 للكود و 1234 للتاريخ.</div>
+      </div>
+
+      <h3 style="color:#004080;margin-top:16px">أرشيف الحوالات</h3>
+      <div class="row" style="margin-bottom:8px">
+        <input id="search" placeholder="ابحث بالاسم/الكود/الرقم">
+        <button class="btn alt" id="btnCsv">تصدير CSV</button>
+        <button class="btn" id="btnDelLast" title="حذف آخر سجل">حذف آخر سجل</button>
+      </div>
+      <div id="archBox" class="archive"></div>
+    </div>
+
+    <!-- قسم المصاريف الشخصية -->
+    <div class="tab-content" id="expenses-tab">
+      <h3 style="color:#004080">إدارة المصاريف الشخصية</h3>
+      
+      <div class="row">
+        <div>
+          <label>نوع المصروف:</label>
+          <select id="expenseType">
+            <option value="طعام">طعام</option>
+            <option value="مواصلات">مواصلات</option>
+            <option value="إيجار">إيجار</option>
+            <option value="فواتير">فواتير</option>
+            <option value="تسوق">تسوق</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+        <div>
+          <label>المبلغ:</label>
+          <input id="expenseAmount" type="number" placeholder="المبلغ">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>التاريخ:</label>
+          <input id="expenseDate" type="date">
+        </div>
+        <div>
+          <label>عملة المصروف:</label>
+          <select id="expenseCurrency">
+            <option value="دولار">دولار</option>
+            <option value="يورو">يورو</option>
+            <option value="ليرة تركية">ليرة تركية</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label>تفاصيل المصروف:</label>
+        <textarea id="expenseDetails" placeholder="وصف المصروف"></textarea>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn expense" id="btnSaveExpense">حفظ المصروف</button>
+        <button class="btn alt" id="btnClearExpense">مسح الحقول</button>
+      </div>
+
+      <h3 style="color:#004080;margin-top:16px">سجل المصاريف</h3>
+      <div class="row" style="margin-bottom:8px">
+        <input id="searchExpense" placeholder="ابحث في المصاريف">
+        <button class="btn alt" id="btnExportExpenses">تصدير المصاريف</button>
+      </div>
+      <div id="expensesList" class="archive"></div>
+    </div>
+
+    <!-- قسم التقارير والإحصائيات -->
+    <div class="tab-content" id="reports-tab">
+      <h3 style="color:#004080">التقارير والإحصائيات</h3>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="totalTransfers">0</div>
+          <div class="stat-label">إجمالي الحوالات</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalAmount">0</div>
+          <div class="stat-label">إجمالي المبالغ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalExpenses">0</div>
+          <div class="stat-label">إجمالي المصاريف</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="balance">0</div>
+          <div class="stat-label">الرصيد المتوقع</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <h4 style="color:#004080">آخر الحوالات</h4>
+          <div id="recentTransfers" class="archive" style="height:200px"></div>
+        </div>
+        <div>
+          <h4 style="color:#004080">آخر المصاريف</h4>
+          <div id="recentExpenses" class="archive" style="height:200px"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px">
+        <button class="btn report" id="btnGenerateReport">إنشاء تقرير مفصل</button>
       </div>
     </div>
 
-    <div class="row" style="margin-top:12px">
-      <button class="btn" id="btnSave">حفظ السجل + نسخة الزبون</button>
-      <button class="btn copy no-print" id="btnCopyText">نسخ نصي</button>
-      <button class="btn print no-print" id="btnPrintAgain" title="طباعة آخر نسخة">طباعة آخر نسخة</button>
-    </div>
+    <!-- قسم الإعدادات -->
+    <div class="tab-content" id="settings-tab">
+      <h3 style="color:#004080">الإعدادات</h3>
+      
+      <div class="box">
+        <h4 style="color:#004080; margin-top:0">إعدادات الحساب</h4>
+        <div class="row">
+          <div>
+            <label>اسم المستخدم:</label>
+            <input id="username" placeholder="اسم المستخدم">
+          </div>
+          <div>
+            <label>كلمة المرور:</label>
+            <input id="password" type="password" placeholder="كلمة المرور">
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="btnSaveCredentials">حفظ بيانات الدخول</button>
+        </div>
+      </div>
 
-    <div class="box">
-      <b>معاينة:</b>
-      <div id="preview" class="muted" style="margin-top:6px">املأ الحقول ثم استخدم 7119 للكود و 1234 للتاريخ.</div>
-    </div>
+      <div class="box">
+        <h4 style="color:#004080; margin-top:0">إعدادات المزامنة</h4>
+        <div>
+          <label>رابط المزامنة (اختياري):</label>
+          <input id="syncUrl" placeholder="https://example.com/sync">
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn alt" id="btnSyncNow">مزامنة الآن</button>
+          <button class="btn" id="btnExportAll">تصدير جميع البيانات</button>
+        </div>
+      </div>
 
-    <h3 style="color:#004080;margin-top:16px">الأرشيف</h3>
-    <div class="row" style="margin-bottom:8px">
-      <input id="search" placeholder="ابحث بالاسم/الكود/الرقم">
-      <button class="btn alt" id="btnCsv">تصدير CSV</button>
-      <button class="btn" id="btnDelLast" title="حذف آخر سجل">حذف آخر سجل</button>
+      
+<div class="box">
+  <h4 style="color:#004080; margin-top:0">إدارة الموظفين</h4>
+  <div class="row">
+    <div><input id="newEmpUser" placeholder="اسم الموظف"></div>
+    <div><input id="newEmpPass" type="password" placeholder="كلمة المرور"></div>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn" id="btnAddUser">إضافة موظف</button>
+    <button class="btn alt" id="btnShowUsers">عرض الموظفين</button>
+  </div>
+  <div id="usersList" style="margin-top:10px" class="muted"></div>
+</div>
+
+<div class="box">
+        <h4 style="color:#004080; margin-top:0">إدارة الأرشيف</h4>
+        <div class="row">
+          <button class="btn" id="btnBackup">إنشاء نسخة احتياطية</button>
+          <button class="btn alt" id="btnRestore">استعادة نسخة</button>
+          <button class="btn expense" id="btnClearData">مسح جميع البيانات</button>
+        </div>
+      </div>
     </div>
-    <div id="archBox" class="archive"></div>
   </div>
 </div>
 
-<!-- نافذة إضافة حساب -->
+<!-- النوافذ المنبثقة -->
 <div id="modalAddAccount" class="modal">
   <div class="modal-content">
     <h3>إضافة حساب جديد</h3>
@@ -149,7 +341,6 @@
   </div>
 </div>
 
-<!-- نافذة قائمة الحسابات -->
 <div id="modalAccountsList" class="modal">
   <div class="modal-content">
     <h3>قائمة الحسابات</h3>
@@ -160,25 +351,13 @@
   </div>
 </div>
 
-<!-- نافذة كشف الحساب -->
 <div id="modalAccountStatement" class="modal">
-  <div class="modal-content" style="width: 600px;">
+  <div class="modal-content modal-wide">
     <h3>كشف حساب: <span id="statementAccountName"></span></h3>
     <div id="accountStatement" style="max-height: 400px; overflow-y: auto;"></div>
     <div class="row" style="margin-top:12px">
       <button class="btn print" id="btnPrintStatement">طباعة الكشف</button>
       <button class="btn alt" id="btnCloseStatement">إغلاق</button>
-    </div>
-  </div>
-</div>
-
-<!-- نافذة نسخة الزبون -->
-<div id="modalCustomerPrint" class="modal">
-  <div class="modal-content" style="width: 600px; max-height: 90%; overflow-y: auto;">
-    <div id="customerPrintContent"></div>
-    <div class="row" style="margin-top:12px">
-      <button class="btn print" id="btnPrintCustomer">طباعة</button>
-      <button class="btn alt" id="btnCloseCustomer">إغلاق</button>
     </div>
   </div>
 </div>
@@ -191,16 +370,55 @@
   var PHONES = ["05342442676","05345539637"];
   var STORAGE_KEY = "remitArchiveV2";
   var ACCOUNTS_STORAGE_KEY = "remitAccountsV1";
+  var EXPENSES_STORAGE_KEY = "remitExpensesV1";
+  var SETTINGS_STORAGE_KEY = "remitSettingsV1";
   var lastPrinted = null;
-  var currentAccount = null;
 
-  // ====== توابع مساعدة متوافقة مع المتصفحات القديمة ======
+  // ====== تهيئة التطبيق ======
+  function initApp() {
+    // تهيئة جميع الأقسام
+    updateSenderDropdown();
+    setPreview();
+    renderArchive();
+    renderExpenses();
+    updateStats();
+    loadSettings();
+    
+    // إضافة أحداث التبويبات
+    var tabs = document.querySelectorAll('.tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        // إزالة النشاط من جميع الألسنة
+        tabs.forEach(function(t) {
+          t.classList.remove('active');
+        });
+        // إخفاء جميع محتويات الألسنة
+        document.querySelectorAll('.tab-content').forEach(function(content) {
+          content.classList.remove('active');
+        });
+        // تفعيل اللسان المحدد
+        this.classList.add('active');
+        // إظهار المحتوى المرتبط
+        document.getElementById(this.getAttribute('data-tab') + '-tab').classList.add('active');
+      });
+    });
+  
+    // زر تسجيل الخروج
+if(document.getElementById("btnLogout")){
+document.getElementById("btnLogout").onclick = function(){
+localStorage.removeItem("currentUser");
+window.location.href = "login_fixed.html";
+};
+}  
+
+  }
+
+  // ====== توابع مساعدة ======
   function pad2(n){ n = String(n); return ("0"+n).slice(-2); }
   function nowStamp(){
     var d=new Date();
     return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes())+":"+pad2(d.getSeconds());
   }
-  // كود: أرقام-حرف-أرقام
   function genCode(){
     var left = Math.floor(10000+Math.random()*90000);
     var letter = String.fromCharCode(65+Math.floor(Math.random()*26));
@@ -229,12 +447,15 @@
                "<br>المبلغ: "+(p.amount||"—")+" "+(p.currency||"—")+" • بيان: "+(p.notes||"—");
     byId("preview").innerHTML = text;
   }
+
+  // ====== إدارة الحوالات ======
   function loadArch(){
     try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }catch(e){ return []; }
   }
   function saveArchItem(item){
     var arr = loadArch(); arr.push(item);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    updateStats();
     return arr;
   }
   function renderArchive(filter){
@@ -335,67 +556,171 @@
     byId("modalAccountStatement").style.display = "flex";
   }
 
-  // ====== نسخ النص ======
-function copyText() {
-  var p = collect();
-  var text =
-    "Cash Group company\n\n" +
-    "📌 حوالة: " + (p.transactionType || "—") + "\n" +
-    "من حساب: " + (p.sender || "—") + "\n\n" +
-    "📅 التاريخ: " + (p.stamp || nowStamp()) + "\n" +
-    "* العميل: " + (p.recvName || "—") + "\n" +
-    "* المبلغ: " + (p.amount || "—") + " " + (p.currency || "") + "\n" +
-    "* الكود: " + (p.moveCode || "—") + "\n" +
-    "* البيان: " + (p.notes || "—") + "\n\n" +
-    "📍 العنوان: " + ADDRESS_HTML.replace(/<br>/g, " ").replace(/<[^>]+>/g, "") +
-    " — " + PHONES.join(" — ");
+  // ====== إدارة المصاريف ======
+  function loadExpenses(){
+    try{ return JSON.parse(localStorage.getItem(EXPENSES_STORAGE_KEY) || "[]"); }catch(e){ return []; }
+  }
+  function saveExpense(expense){
+    var arr = loadExpenses(); 
+    // إضافة تاريخ إنشاء تلقائي إذا لم يكن موجودًا
+    if(!expense.createdAt) expense.createdAt = nowStamp();
+    arr.push(expense);
+    localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(arr));
+    updateStats();
+    return arr;
+  }
+  function renderExpenses(filter){
+    var expenses = loadExpenses();
+    var container = byId("expensesList");
+    var f = (filter||"").toLowerCase();
+    var html = "";
+    
+    if(expenses.length === 0){
+      container.innerHTML = '<div class="muted">لا توجد مصاريف مسجلة بعد.</div>';
+      return;
+    }
+    
+    for(var i=expenses.length-1;i>=0;i--){
+      var e=expenses[i];
+      var str=(e.type+" "+e.details+" "+e.amount+" "+e.currency).toLowerCase();
+      if(!f || str.indexOf(f)>-1){
+        html += '<div class="rowLine"><b>'+e.type+'</b> — '+e.date+' — '+e.amount+e.currency+
+                '<div class="muted">'+e.details+'</div></div>';
+      }
+    }
+    container.innerHTML = html;
+  }
 
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        alert("تم نسخ النص إلى الحافظة ✅");
-      })
-      .catch(err => {
-        console.error("خطأ في النسخ:", err);
-        alert("تعذر نسخ النص، جرب يدويًا.");
-      });
-  } else {
+  // ====== الإحصائيات ======
+  function updateStats(){
+    var transactions = loadArch();
+    var expenses = loadExpenses();
+    
+    // إجمالي الحوالات
+    byId("totalTransfers").textContent = transactions.length;
+    
+    // إجمالي المبالغ
+    var totalAmount = transactions.reduce(function(sum, t) {
+      return sum + (parseFloat(t.amount) || 0);
+    }, 0);
+    byId("totalAmount").textContent = totalAmount.toFixed(2);
+    
+    // إجمالي المصاريف
+    var totalExpenses = expenses.reduce(function(sum, e) {
+      return sum + (parseFloat(e.amount) || 0);
+    }, 0);
+    byId("totalExpenses").textContent = totalExpenses.toFixed(2);
+    
+    // الرصيد المتوقع
+    byId("balance").textContent = (totalAmount - totalExpenses).toFixed(2);
+    
+    // آخر الحوالات
+    var recentTransfers = transactions.slice(-5).reverse();
+    var transfersHtml = "";
+    for(var i=0; i<recentTransfers.length; i++){
+      var t = recentTransfers[i];
+      transfersHtml += '<div class="muted" style="margin-bottom:6px">'+t.stamp+' - '+t.amount+t.currency+'</div>';
+    }
+    byId("recentTransfers").innerHTML = transfersHtml || '<div class="muted">لا توجد حوالات</div>';
+    
+    // آخر المصاريف
+    var recentExpenses = expenses.slice(-5).reverse();
+    var expensesHtml = "";
+    for(var i=0; i<recentExpenses.length; i++){
+      var e = recentExpenses[i];
+      expensesHtml += '<div class="muted" style="margin-bottom:6px">'+e.date+' - '+e.amount+e.currency+'</div>';
+    }
+    byId("recentExpenses").innerHTML = expensesHtml || '<div class="muted">لا توجد مصاريف</div>';
+  }
+
+  // ====== الإعدادات ======
+  function loadSettings(){
+    try{ 
+      var settings = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || "{}");
+      if(settings.username) byId("username").value = settings.username;
+      if(settings.password) byId("password").value = settings.password;
+      if(settings.syncUrl) byId("syncUrl").value = settings.syncUrl;
+      return settings;
+    }catch(e){ return {}; }
+  }
+  function saveSettings(){
+    var settings = {
+      username: byId("username").value,
+      password: byId("password").value,
+      syncUrl: byId("syncUrl").value
+    };
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    alert("تم حفظ الإعدادات بنجاح");
+    return settings;
+  }
+
+  // ====== نسخ النص بالتنسيق الجديد ======
+  function copyText(){
+    var p = collect();
+    var text = "Cash Group company\n\n";
+    text += "📌 حوالة: " + p.transactionType + "\n";
+    text += "من حساب : " + p.sender + "\n\n";
+    text += "📅 التاريخ: " + (p.stamp || nowStamp()) + "\n";
+    text += "* العميل: " + p.recvName + "\n";
+    text += "* المبلغ: " + p.amount + " " + p.currency + "\n";
+    text += "* الكود: " + p.moveCode + "\n";
+    text += "* البيان : " + (p.notes || "—") + "\n\n";
+    text += "📍 العنوان: Kocatepe mahallesi / selanik Cad, no:23, kat:3, daire:9 / Kızılay / Ankara — +905342442676";
+    
+    // نسخ النص إلى الحافظة
     var textarea = document.createElement("textarea");
     textarea.value = text;
     document.body.appendChild(textarea);
     textarea.select();
     document.execCommand("copy");
     document.body.removeChild(textarea);
-    alert("تم نسخ النص إلى الحافظة ✅");
+    
+    alert("تم نسخ النص إلى الحافظة");
   }
-}
 
   // ====== نافذة طباعة نسخة الزبون ======
   function openCustomerPrint(item){
-  var qr = "https://api.qrserver.com/v1/create-qr-code/?size=130x130&data="+encodeURIComponent(MAP_URL);
-
-  var html = ''
-    +'<div class="header" style="display:flex;align-items:center;gap:12px;margin-bottom:10px">'
-    +'<div class="logo" style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#0a66ff,#4aa3ff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px">CG</div>'
-    +'<div><h2 style="margin:0;color:#004080">'+OFFICE+'</h2><div class="muted">إيصال الزبون — للاحتفاظ</div></div>'
-    +'</div>'
-    +'<div class="box">'
-    +'<div class="kv"><b>كود الحركة:</b> '+item.moveCode+'</div>'
-    +'<div class="kv"><b>التاريخ والوقت:</b> '+item.stamp+'</div>'
-    +'<div class="kv"><b>المبلغ ('+item.currency+'):</b> '+item.amount+'</div>'
-    +'<div class="kv"><b>نوع العملية:</b> '+item.transactionType+'</div>'
-    +'<div class="kv"><b>المرسل:</b> '+item.sender+'</div>'
-    +'<div class="kv"><b>اسم المستلم:</b> '+item.recvName+'</div>'
-    +'<div class="kv"><b>رقم المستلم:</b> '+item.recvPhone+'</div>'
-    +'<div class="kv"><b>بيان:</b> '+(item.notes||"—")+'</div>'
-    +'<div class="kv"><img src="'+qr+'" width="130" height="130" alt="QR"></div>'
-    +'<div class="kv"><b>العنوان:</b><br>'+ADDRESS_HTML+'</div>'
-    +'<div class="kv"><b>هاتف:</b> '+PHONES.join(" — ")+'</div>'
-    +'</div>';
-
-  byId("customerPrintContent").innerHTML = html;
-  byId("modalCustomerPrint").style.display = "flex";
-}
+    var qr = "https://api.qrserver.com/v1/create-qr-code/?size=130x130&data="+encodeURIComponent(MAP_URL);
+    var w = window.open("", "", "width=800,height=900");
+    var css = '<style>'
+      +'body{font-family:Tahoma, Arial, sans-serif;color:#1f2d3d;margin:0;padding:20px;background:#fff}'
+      +'.header{display:flex;align-items:center;gap:12px;margin-bottom:10px}'
+      +'.logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#0a66ff,#4aa3ff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px}'
+      +'h2{margin:0;color:#004080}'
+      +'.box{border:1px solid #d6e0ef;border-radius:12px;background:#f7fbff;padding:14px;margin-top:10px}'
+      +'.row{display:flex;gap:14px}'
+      +'.col{flex:1}'
+      +'.kv{margin:6px 0}'
+      +'.kv b{color:#004080}'
+      +'.footer{display:flex;gap:16px;align-items:center;margin-top:16px;border-top:1px dashed #d6e0ef;padding-top:12px}'
+      +'.muted{color:#5b7083;font-size:13px}'
+      +'.badge{display:inline-block;background:#edf4ff;color:#0a66ff;border:1px solid #cfe0ff;border-radius:999px;padding:4px 10px;font-size:12px}'
+      +'</style>';
+    var html = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>نسخة الزبون - '+OFFICE+'</title>'+css+'</head><body>'
+      +'<div class="header"><div class="logo">CG</div><div><h2>'+OFFICE+'</h2><div class="muted">إيصال الزبون — للاحتفاظ</div></div></div>'
+      +'<div class="box"><div class="row"><div class="col">'
+      +'<div class="kv"><b>كود الحركة:</b> '+item.moveCode+'</div>'
+      +'<div class="kv"><b>التاريخ والوقت:</b> '+item.stamp+'</div>'
+      +'<div class="kv"><b>المبلغ ('+item.currency+'):</b> '+item.amount+'</div>'
+      +'<div class="kv"><b>نوع العملية:</b> '+item.transactionType+'</div>'
+      +'</div><div class="col">'
+      +'<div class="kv"><b>المرسل:</b> '+item.sender+'</div>'
+      +'<div class="kv"><b>اسم المستلم:</b> '+item.recvName+'</div>'
+      +'<div class="kv"><b>رقم المستلم:</b> '+item.recvPhone+'</div>'
+      +'</div></div>'
+      +'<div class="kv"><b>بيان:</b> '+(item.notes||"—")+'</div>'
+      +'<div class="badge">الاستلام: '+item.currency+'</div>'
+      +'</div>'
+      +'<div class="footer"><img src="'+qr+'" width="130" height="130" alt="QR">'
+      +'<div><div><b>العنوان:</b><br>'+ADDRESS_HTML+'</div>'
+      +'<div style="margin-top:6px"><b>هاتف:</b> '+PHONES.join(" — ")+'</div>'
+      +'<div class="muted">Google Maps: '+MAP_URL+'</div>'
+      +'</div></div>'
+      +'<script>window.onload=function(){window.print();};<\/script>'
+      +'</body></html>';
+    w.document.write(html);
+    w.document.close();
+  }
 
   // ====== أحداث الأزرار ======
   byId("btnCode").onclick = function(){ byId("moveCode").value = genCode(); setPreview(); };
@@ -480,65 +805,202 @@ function copyText() {
   byId("btnCancelAccount").onclick = function(){
     byId("modalAddAccount").style.display = "none";
   };
-  byId("btnCloseAccounts").onclick = function(){
-    byId("modalAccountsList").style.display = "none";
-  };
-  byId("btnCloseStatement").onclick = function(){
-    byId("modalAccountStatement").style.display = "none";
-  };
-  byId("btnPrintStatement").onclick = function(){
-    window.print();
-  };
 
-  byId("btnCloseCustomer").onclick = function(){
-  byId("modalCustomerPrint").style.display = "none";
-};
-byId("btnPrintCustomer").onclick = function(){
-  var printContent = byId("customerPrintContent").innerHTML;
-  var win = window.open("", "", "width=800,height=900");
-  win.document.write('<html><head><meta charset="utf-8"><title>طباعة</title></head><body>'+printContent+'<script>window.onload=function(){window.print();};<\/script></body></html>');
-  win.document.close();
-  win.print();
-};
-
- 
-// إغلاق النوافذ المنبثقة بالنقر خارجها
-window.onclick = function(event) {
-  if (event.target.className === "modal") {
-    event.target.style.display = "none";
-  }
-};
-
-// البحث والأحداث
-byId("search").oninput = function(){ renderArchive(this.value); };
-["sender", "transactionType", "currency", "recvName", "recvPhone", "amount", "notes", "moveCode", "stamp"].forEach(function(id){
-  var el = byId(id);
-  if(el) el.oninput = setPreview;
-});
-
-// تهيئة أولية
-updateSenderDropdown();
-setPreview();
-renderArchive();
-
-// تسجيل الـ Service Worker
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js")
-    .then(() => console.log("Service Worker Registered"))
-    .catch((err) => console.log("Service Worker Failed: ", err));
-}
-
-// طلب إذن الإشعارات
-if ("Notification" in window && Notification.permission !== "granted") {
-  Notification.requestPermission().then(function(permission) {
-    if (permission === "granted") {
-      new Notification("شكراً لمنح الإذن!", {
-        body: "يمكنك الآن تلقي إشعارات من التطبيق.",
-        icon: "icon-192.png" // ✅ أيقونة موجودة فعلياً
-      });
+</script>
+<script>
+  // Ensure initApp runs after DOM is ready and show console message.
+  document.addEventListener("DOMContentLoaded", function(){
+    try{
+      if(typeof initApp === "function"){
+        initApp();
+        console.log("initApp() called (from appended initializer).");
+      } else {
+        console.error("initApp is not defined.");
+        alert("حدث خطأ: initApp غير معرف. افتح وحدة التحكم Console وأرسل لي رسالة الخطأ.");
+      }
+    }catch(e){
+      console.error(e);
+      alert("خطأ أثناء تشغيل initApp: " + e.message);
     }
   });
+</script>
+<script>
+  // ---- إضافات الأزرار الناقصة ----
+  document.addEventListener("DOMContentLoaded", function(){
+    function $(id){ return document.getElementById(id); }
+
+    // إغلاق قائمة الحسابات
+    if($("btnCloseAccounts")) $("btnCloseAccounts").onclick = function(){ $("modalAccountsList").style.display="none"; };
+
+    // كشف الحساب
+    if($("btnPrintStatement")) $("btnPrintStatement").onclick = function(){
+      var c = $("accountStatement");
+      if(!c){ alert("لا يوجد محتوى للطباعة"); return; }
+      var w = window.open("","","width=800,height=900");
+      w.document.write("<html><head><meta charset='utf-8'><title>كشف حساب</title></head><body>"+c.innerHTML+"<script>window.onload=function(){window.print();};<\/script></body></html>");
+      w.document.close();
+    };
+    if($("btnCloseStatement")) $("btnCloseStatement").onclick = function(){ $("modalAccountStatement").style.display="none"; };
+
+    // المصاريف
+    if($("btnSaveExpense")) $("btnSaveExpense").onclick = function(){
+      var e={
+        type:$("expenseType").value, amount:$("expenseAmount").value,
+        date:$("expenseDate").value||new Date().toISOString().slice(0,10),
+        currency:$("expenseCurrency").value, details:$("expenseDetails").value
+      };
+      if(!e.amount){ alert("الرجاء إدخال المبلغ"); return; }
+      saveExpense(e); renderExpenses(); updateStats();
+      $("expenseAmount").value=""; $("expenseDetails").value=""; $("expenseDate").value="";
+      alert("تم حفظ المصروف");
+    };
+    if($("btnClearExpense")) $("btnClearExpense").onclick=function(){
+      $("expenseAmount").value=""; $("expenseDetails").value=""; $("expenseDate").value="";
+    };
+    if($("btnExportExpenses")) $("btnExportExpenses").onclick=function(){
+      var rows=loadExpenses(); if(!rows.length){ alert("لا توجد مصاريف"); return; }
+      var csv="type,amount,date,currency,details\n";
+      rows.forEach(r=>{ csv+=[r.type,r.amount,r.date,r.currency,r.details].join(",")+"\n"; });
+      var blob=new Blob([csv],{type:"text/csv"});
+      var url=URL.createObjectURL(blob); var a=document.createElement("a");
+      a.href=url;a.download="expenses.csv";a.click(); setTimeout(()=>URL.revokeObjectURL(url),500);
+    };
+
+    // تقرير مفصل
+    if($("btnGenerateReport")) $("btnGenerateReport").onclick=function(){
+      var t=loadArch(), e=loadExpenses();
+      var w=window.open("","","width=1000,height=800");
+      var h="<h2>الحوالات</h2><ul>"+t.map(x=>"<li>"+x.moveCode+" - "+x.amount+x.currency+"</li>").join("")+"</ul>";
+      h+="<h2>المصاريف</h2><ul>"+e.map(x=>"<li>"+x.type+" - "+x.amount+x.currency+"</li>").join("")+"</ul>";
+      w.document.write("<html><head><meta charset='utf-8'><title>تقرير</title></head><body>"+h+"<script>window.onload=function(){window.print();};<\/script></body></html>");
+      w.document.close();
+    };
+
+    // الإعدادات
+    if($("btnSaveCredentials")) $("btnSaveCredentials").onclick=function(){ saveSettings(); };
+    if($("btnSyncNow")) $("btnSyncNow").onclick=function(){
+      var url=$("syncUrl").value.trim(); if(!url){ alert("لا يوجد رابط"); return; }
+      alert("مزامنة تجريبية مع: "+url);
+    };
+    if($("btnExportAll")) $("btnExportAll").onclick=function(){
+      var data={archive:loadArch(),accounts:loadAccounts(),expenses:loadExpenses(),settings:loadSettings()};
+      var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+      var url=URL.createObjectURL(blob); var a=document.createElement("a");
+      a.href=url;a.download="backup.json";a.click(); setTimeout(()=>URL.revokeObjectURL(url),500);
+    };
+    if($("btnBackup")) $("btnBackup").onclick=function(){ $("btnExportAll").click(); };
+    if($("btnRestore")) $("btnRestore").onclick=function(){
+      var i=document.createElement("input");i.type="file";i.accept="application/json";
+      i.onchange=function(ev){ var f=ev.target.files[0];var r=new FileReader();
+        r.onload=function(e){ var d=JSON.parse(e.target.result);
+          if(d.archive) localStorage.setItem(STORAGE_KEY,JSON.stringify(d.archive));
+          if(d.accounts) localStorage.setItem(ACCOUNTS_STORAGE_KEY,JSON.stringify(d.accounts));
+          if(d.expenses) localStorage.setItem(EXPENSES_STORAGE_KEY,JSON.stringify(d.expenses));
+          if(d.settings) localStorage.setItem(SETTINGS_STORAGE_KEY,JSON.stringify(d.settings));
+          renderArchive();renderExpenses();updateStats();updateSenderDropdown();
+          alert("تمت الاستعادة"); };
+        r.readAsText(f); };
+      i.click();
+    };
+    if($("btnClearData")) $("btnClearData").onclick=function(){
+      if(confirm("مسح جميع البيانات؟")){
+        localStorage.clear(); renderArchive();renderExpenses();updateStats();updateSenderDropdown();
+        alert("تم المسح");
+      }
+    };
+  });
+  // ---- نهاية الإضافات ----
+</script>
+
+<script>
+// ====== إدارة الموظفين ======
+var USERS_STORAGE_KEY = "remitUsersV1";
+
+function loadUsers(){
+  try{ return JSON.parse(localStorage.getItem(USERS_STORAGE_KEY)||"[]"); }catch(e){ return []; }
 }
+
+function saveUser(user){
+  let arr=loadUsers();
+  arr.push(user);
+  localStorage.setItem(USERS_STORAGE_KEY,JSON.stringify(arr));
+  return arr;
+}
+
+function renderUsers(){
+  let users=loadUsers();
+  let box=document.getElementById("usersList");
+  if(users.length===0){ box.innerHTML="لا يوجد موظفين بعد."; return; }
+  box.innerHTML = users.map((u,i)=>`
+  <div>
+    👤 ${u.username} 
+    <button onclick="editUser(${i})">✏️ تعديل</button>
+    <button onclick="deleteUser(${i})">🗑️ حذف</button>
+  </div>
+`).join("");
+
+}
+
+function editUser(index){
+  let users = loadUsers();
+  let newPass = prompt("أدخل كلمة المرور الجديدة للموظف:", users[index].password);
+  if(newPass){
+    users[index].password = newPass;
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    renderUsers();
+    alert("تم تعديل كلمة المرور");
+  }
+}
+
+function deleteUser(index){
+  let users = loadUsers();
+  if(confirm("هل أنت متأكد من حذف هذا الموظف؟")){
+    users.splice(index,1);
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    renderUsers();
+    alert("تم حذف الموظف");
+  }
+}
+
+
+if(document.getElementById("btnAddUser")){
+  document.getElementById("btnAddUser").onclick=function(){
+    let u=document.getElementById("newEmpUser").value.trim();
+    let p=document.getElementById("newEmpPass").value.trim();
+    if(!u||!p){alert("يرجى إدخال اسم وكلمة مرور");return;}
+    saveUser({username:u, password:p, role:"employee"});
+    document.getElementById("newEmpUser").value="";
+    document.getElementById("newEmpPass").value="";
+    renderUsers();
+    alert("تمت إضافة الموظف");
+  };
+}
+
+if(document.getElementById("btnShowUsers")){
+  document.getElementById("btnShowUsers").onclick=renderUsers;
+}
+
+function applyPermissions(user){
+  if(user.role !== "admin"){
+    let settingsTab = document.getElementById("settings-tab");
+    if(settingsTab){
+      settingsTab.style.display = "none";
+    }
+  }
+}
+
+// ✅ هذا الكود لازم يجي بعد تعريف الدالة
+document.addEventListener("DOMContentLoaded", function(){
+  try {
+    let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if(currentUser){
+      applyPermissions(currentUser);
+    }
+  } catch(e){
+    console.error("applyPermissions on load:", e);
+  }
+});
 </script>
 </body>
 </html>
+
