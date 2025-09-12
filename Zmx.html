@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>كاش كروب للحوالات</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{margin:0;background:#e6f1ff;font-family:Tahoma, Arial, sans-serif;color:#123}
+  .wrap{max-width:980px;margin:24px auto;padding:0 12px}
+  .card{background:#fff;border:1px solid #cfe0ff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:18px}
+  .head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .logo{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,#0a66ff,#4aa3ff);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px}
+  h1{margin:0;color:#004080;font-size:28px}
+  .muted{color:#5b6a7d;font-size:13px}
+  label{display:block;margin-top:10px;font-weight:bold}
+  input,textarea,select{width:100%;padding:10px;border:1px solid #cfe0ff;border-radius:8px;font-size:16px}
+  textarea{min-height:72px;resize:vertical}
+  .row{display:flex;gap:10px}
+  .row>*{flex:1}
+  .btn{cursor:pointer;border:none;border-radius:10px;padding:11px 12px;font-size:16px;color:#fff;background:#004080}
+  .btn.alt{background:#0a66ff}
+  .btn.print{background:#14853b}
+  .btn.copy{background:#8e44ad}
+  .box{background:#f4f9ff;border:1px solid #dce9ff;border-radius:10px;padding:12px;margin-top:12px}
+  .archive{max-height:280px;overflow:auto;border:1px solid #dce9ff;border-radius:10px;background:#fbfdff;padding:10px}
+  .rowLine{border-bottom:1px dashed #e4eefc;padding:8px 4px}
+  .modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;justify-content:center;align-items:center}
+  .modal-content{background:white;padding:20px;border-radius:12px;width:400px;max-width:90%}
+  .account-item{cursor:pointer;padding:10px;border-bottom:1px solid #eee;margin:5px 0}
+  .account-item:hover{background:#f5f5f5}
+  @media print{.no-print{display:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="head">
+      <div class="logo">CG</div>
+      <div>
+        <h1>كاش كروب للحوالات</h1>
+        <div class="muted">نظام المكتب + نسخة الزبون للطباعة</div>
+      </div>
+    </div>
+
+    <!-- إدارة الحسابات -->
+    <div class="row" style="margin-bottom: 12px;">
+      <button class="btn" id="btnAddAccount">+ اضافة حساب</button>
+      <button class="btn alt" id="btnViewAccounts">قائمة الحسابات</button>
+    </div>
+
+    <!-- المرسل (من الحسابات المضافة) -->
+    <label>المرسل:</label>
+    <select id="sender">
+      <option value="">-- اختر الحساب --</option>
+    </select>
+
+    <div class="row">
+      <div>
+        <label>نوع العملية:</label>
+        <select id="transactionType">
+          <option value="وارد">وارد</option>
+          <option value="صادر">صادر</option>
+        </select>
+      </div>
+      <div>
+        <label>عملة التحويل:</label>
+        <select id="currency">
+          <option value="دولار">دولار</option>
+          <option value="يورو">يورو</option>
+          <option value="ليرة تركية">ليرة تركية</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>اسم المستلم:</label>
+        <input id="recvName" placeholder="اكتب اسم المستلم">
+      </div>
+      <div>
+        <label>رقم المستلم (هاتف):</label>
+        <input id="recvPhone" placeholder="اكتب رقم المستلم">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>المبلغ:</label>
+        <input id="amount" type="number" placeholder="مثلًا 10000">
+      </div>
+      <div>
+        <label>بيان:</label>
+        <input id="notes" placeholder="اختياري">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>كود الحركة:</label>
+        <div class="row">
+          <input id="moveCode" placeholder="توليد تلقائي بالزر">
+          <button class="btn" id="btnCode" title="اختصار توليد الكود">7119</button>
+        </div>
+        <div class="muted">التنسيق: أرقام-حرف-أرقام (مثل 36425-A-317)</div>
+      </div>
+      <div>
+        <label>التاريخ والوقت:</label>
+        <div class="row">
+          <input id="stamp" placeholder="توليد الآن بالزر">
+          <button class="btn alt" id="btnTime" title="اختصار توقيت الآن">1234</button>
+        </div>
+        <div class="muted">يعتمد على ساعة جهازك (24 ساعة)</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="btnSave">حفظ السجل + نسخة الزبون</button>
+      <button class="btn copy no-print" id="btnCopyText">نسخ نصي</button>
+      <button class="btn print no-print" id="btnPrintAgain" title="طباعة آخر نسخة">طباعة آخر نسخة</button>
+    </div>
+
+    <div class="box">
+      <b>معاينة:</b>
+      <div id="preview" class="muted" style="margin-top:6px">املأ الحقول ثم استخدم 7119 للكود و 1234 للتاريخ.</div>
+    </div>
+
+    <h3 style="color:#004080;margin-top:16px">الأرشيف</h3>
+    <div class="row" style="margin-bottom:8px">
+      <input id="search" placeholder="ابحث بالاسم/الكود/الرقم">
+      <button class="btn alt" id="btnCsv">تصدير CSV</button>
+      <button class="btn" id="btnDelLast" title="حذف آخر سجل">حذف آخر سجل</button>
+    </div>
+    <div id="archBox" class="archive"></div>
+  </div>
+</div>
+
+<!-- نافذة إضافة حساب -->
+<div id="modalAddAccount" class="modal">
+  <div class="modal-content">
+    <h3>إضافة حساب جديد</h3>
+    <label>اسم الحساب:</label>
+    <input id="accountName" placeholder="اسم الحساب">
+    <label>رقم الهاتف:</label>
+    <input id="accountPhone" placeholder="رقم الهاتف">
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="btnSaveAccount">حفظ</button>
+      <button class="btn alt" id="btnCancelAccount">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة قائمة الحسابات -->
+<div id="modalAccountsList" class="modal">
+  <div class="modal-content">
+    <h3>قائمة الحسابات</h3>
+    <div id="accountsList"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn alt" id="btnCloseAccounts">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة كشف الحساب -->
+<div id="modalAccountStatement" class="modal">
+  <div class="modal-content" style="width: 600px;">
+    <h3>كشف حساب: <span id="statementAccountName"></span></h3>
+    <div id="accountStatement" style="max-height: 400px; overflow-y: auto;"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn print" id="btnPrintStatement">طباعة الكشف</button>
+      <button class="btn alt" id="btnCloseStatement">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة نسخة الزبون -->
+<div id="modalCustomerPrint" class="modal">
+  <div class="modal-content" style="width: 600px; max-height: 90%; overflow-y: auto;">
+    <div id="customerPrintContent"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn print" id="btnPrintCustomer">طباعة</button>
+      <button class="btn alt" id="btnCloseCustomer">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ====== متغيرات ثابتة ======
+  var MAP_URL = "https://maps.app.goo.gl/B7aE1kCLj8AfmTSW9?g_st=ipc";
+  var OFFICE = "كاش كروب للحوالات";
+  var ADDRESS_HTML = "Kocatepe mahallesi<br>Selanik caddesi No:23/9<br>Cankaya / Ankara";
+  var PHONES = ["05342442676","05345539637"];
+  var STORAGE_KEY = "remitArchiveV2";
+  var ACCOUNTS_STORAGE_KEY = "remitAccountsV1";
+  var lastPrinted = null;
+  var currentAccount = null;
+
+  // ====== توابع مساعدة متوافقة مع المتصفحات القديمة ======
+  function pad2(n){ n = String(n); return ("0"+n).slice(-2); }
+  function nowStamp(){
+    var d=new Date();
+    return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes())+":"+pad2(d.getSeconds());
+  }
+  // كود: أرقام-حرف-أرقام
+  function genCode(){
+    var left = Math.floor(10000+Math.random()*90000);
+    var letter = String.fromCharCode(65+Math.floor(Math.random()*26));
+    var right = Math.floor(100+Math.random()*900);
+    return left+"-"+letter+"-"+right;
+  }
+  function byId(id){ return document.getElementById(id); }
+  function collect(){
+    return {
+      sender: byId("sender").value,
+      transactionType: byId("transactionType").value,
+      currency: byId("currency").value,
+      recvName: byId("recvName").value,
+      recvPhone: byId("recvPhone").value,
+      amount: byId("amount").value,
+      notes: byId("notes").value,
+      moveCode: byId("moveCode").value,
+      stamp: byId("stamp").value
+    };
+  }
+  function setPreview(){
+    var p = collect();
+    var text = "الكود: "+(p.moveCode||"—")+" • التاريخ: "+(p.stamp||"—")+
+               "<br>المرسل: "+(p.sender||"—")+" • نوع العملية: "+(p.transactionType||"—")+
+               "<br>المستلم: "+(p.recvName||"—")+" • هاتف: "+(p.recvPhone||"—")+
+               "<br>المبلغ: "+(p.amount||"—")+" "+(p.currency||"—")+" • بيان: "+(p.notes||"—");
+    byId("preview").innerHTML = text;
+  }
+  function loadArch(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }catch(e){ return []; }
+  }
+  function saveArchItem(item){
+    var arr = loadArch(); arr.push(item);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    return arr;
+  }
+  function renderArchive(filter){
+    var list = loadArch();
+    var box = byId("archBox");
+    var f = (filter||"").toLowerCase();
+    var html = "";
+    for(var i=list.length-1;i>=0;i--){
+      var r=list[i];
+      var str=(r.sender+" "+r.recvName+" "+r.recvPhone+" "+r.moveCode+" "+r.stamp+" "+r.amount+" "+(r.notes||"")).toLowerCase();
+      if(!f || str.indexOf(f)>-1){
+        html += '<div class="rowLine"><b>'+r.moveCode+'</b> — '+r.stamp+' — '+r.sender+' → '+r.recvName+' ('+r.recvPhone+') — '+r.amount+r.currency
+             + (r.notes? '<div class="muted">بيان: '+r.notes+'</div>' : '')
+             + '</div>';
+      }
+    }
+    box.innerHTML = html || '<div class="muted">لا يوجد سجلات بعد.</div>';
+  }
+
+  // ====== إدارة الحسابات ======
+  function loadAccounts(){
+    try{ return JSON.parse(localStorage.getItem(ACCOUNTS_STORAGE_KEY) || "[]"); }catch(e){ return []; }
+  }
+  function saveAccount(account){
+    var arr = loadAccounts(); 
+    arr.push(account);
+    localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(arr));
+    return arr;
+  }
+  function updateSenderDropdown(){
+    var accounts = loadAccounts();
+    var senderSelect = byId("sender");
+    senderSelect.innerHTML = '<option value="">-- اختر الحساب --</option>';
+    
+    for(var i=0; i<accounts.length; i++){
+      var option = document.createElement("option");
+      option.value = accounts[i].name + " - " + accounts[i].phone;
+      option.textContent = accounts[i].name + " - " + accounts[i].phone;
+      senderSelect.appendChild(option);
+    }
+  }
+  function renderAccountsList(){
+    var accounts = loadAccounts();
+    var listContainer = byId("accountsList");
+    listContainer.innerHTML = "";
+    
+    if(accounts.length === 0){
+      listContainer.innerHTML = '<div class="muted">لا توجد حسابات مضافة بعد.</div>';
+      return;
+    }
+    
+    for(var i=0; i<accounts.length; i++){
+      var accountItem = document.createElement("div");
+      accountItem.className = "account-item";
+      accountItem.innerHTML = '<b>' + accounts[i].name + '</b><br><span class="muted">' + accounts[i].phone + '</span>';
+      
+      accountItem.onclick = (function(acc){
+        return function(){
+          showAccountStatement(acc);
+        };
+      })(accounts[i]);
+      
+      listContainer.appendChild(accountItem);
+    }
+  }
+  function showAccountStatement(account){
+    byId("statementAccountName").textContent = account.name + " - " + account.phone;
+    var transactions = loadArch();
+    var statementContainer = byId("accountStatement");
+    statementContainer.innerHTML = "";
+    
+    var accountTransactions = transactions.filter(function(t){
+      return t.sender === (account.name + " - " + account.phone);
+    });
+    
+    if(accountTransactions.length === 0){
+      statementContainer.innerHTML = '<div class="muted">لا توجد عمليات لهذا الحساب.</div>';
+      return;
+    }
+    
+    var html = '<table style="width:100%; border-collapse:collapse;">';
+    html += '<tr style="background:#f0f5ff;"><th style="padding:8px; border:1px solid #dce9ff;">الكود</th><th style="padding:8px; border:1px solid #dce9ff;">التاريخ</th><th style="padding:8px; border:1px solid #dce9ff;">المستلم</th><th style="padding:8px; border:1px solid #dce9ff;">المبلغ</th><th style="padding:8px; border:1px solid #dce9ff;">البيان</th></tr>';
+    
+    for(var i=0; i<accountTransactions.length; i++){
+      var t = accountTransactions[i];
+      html += '<tr>';
+      html += '<td style="padding:8px; border:1px solid #dce9ff;">' + t.moveCode + '</td>';
+      html += '<td style="padding:8px; border:1px solid #dce9ff;">' + t.stamp + '</td>';
+      html += '<td style="padding:8px; border:1px solid #dce9ff;">' + t.recvName + ' (' + t.recvPhone + ')</td>';
+      html += '<td style="padding:8px; border:1px solid #dce9ff;">' + t.amount + t.currency + '</td>';
+      html += '<td style="padding:8px; border:1px solid #dce9ff;">' + (t.notes || '—') + '</td>';
+      html += '</tr>';
+    }
+    
+    html += '</table>';
+    statementContainer.innerHTML = html;
+    
+    byId("modalAccountStatement").style.display = "flex";
+  }
+
+  // ====== نسخ النص ======
+  function copyText(){
+    var p = collect();
+    var text = OFFICE + "\n";
+    text += "التاريخ: " + (p.stamp || nowStamp()) + "\n";
+    text += "بيان: " + (p.notes || "") + "\n";
+    text += "قيدنا: " + (p.transactionType === "وارد" ? "لنا" : "لكم") + "\n";
+    text += "مبلغ وقدره: " + (p.amount || "") + " " + (p.currency || "") + "\n";
+    
+    // نسخ النص إلى الحافظة
+    var textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+    
+    alert("تم نسخ النص إلى الحافظة");
+  }
+
+  // ====== نافذة طباعة نسخة الزبون ======
+  function openCustomerPrint(item){
+  var qr = "https://api.qrserver.com/v1/create-qr-code/?size=130x130&data="+encodeURIComponent(MAP_URL);
+
+  var html = ''
+    +'<div class="header" style="display:flex;align-items:center;gap:12px;margin-bottom:10px">'
+    +'<div class="logo" style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#0a66ff,#4aa3ff);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px">CG</div>'
+    +'<div><h2 style="margin:0;color:#004080">'+OFFICE+'</h2><div class="muted">إيصال الزبون — للاحتفاظ</div></div>'
+    +'</div>'
+    +'<div class="box">'
+    +'<div class="kv"><b>كود الحركة:</b> '+item.moveCode+'</div>'
+    +'<div class="kv"><b>التاريخ والوقت:</b> '+item.stamp+'</div>'
+    +'<div class="kv"><b>المبلغ ('+item.currency+'):</b> '+item.amount+'</div>'
+    +'<div class="kv"><b>نوع العملية:</b> '+item.transactionType+'</div>'
+    +'<div class="kv"><b>المرسل:</b> '+item.sender+'</div>'
+    +'<div class="kv"><b>اسم المستلم:</b> '+item.recvName+'</div>'
+    +'<div class="kv"><b>رقم المستلم:</b> '+item.recvPhone+'</div>'
+    +'<div class="kv"><b>بيان:</b> '+(item.notes||"—")+'</div>'
+    +'<div class="kv"><img src="'+qr+'" width="130" height="130" alt="QR"></div>'
+    +'<div class="kv"><b>العنوان:</b><br>'+ADDRESS_HTML+'</div>'
+    +'<div class="kv"><b>هاتف:</b> '+PHONES.join(" — ")+'</div>'
+    +'</div>';
+
+  byId("customerPrintContent").innerHTML = html;
+  byId("modalCustomerPrint").style.display = "flex";
+}
+
+  // ====== أحداث الأزرار ======
+  byId("btnCode").onclick = function(){ byId("moveCode").value = genCode(); setPreview(); };
+  byId("btnTime").onclick = function(){ byId("stamp").value = nowStamp(); setPreview(); };
+  byId("btnCopyText").onclick = copyText;
+
+  byId("btnSave").onclick = function(){
+    var d = collect();
+    if(!d.sender || !d.recvName || !d.recvPhone || !d.amount){
+      alert("الرجاء تعبئة: الحساب + اسم المستلم + رقم المستلم + المبلغ.");
+      return;
+    }
+    if(!d.moveCode){ d.moveCode = genCode(); byId("moveCode").value = d.moveCode; }
+    if(!d.stamp){ d.stamp = nowStamp(); byId("stamp").value = d.stamp; }
+
+    saveArchItem(d);
+    renderArchive(byId("search").value||"");
+    lastPrinted = d;
+    openCustomerPrint(d);
+  };
+
+  byId("btnPrintAgain").onclick = function(){
+    if(!lastPrinted){ alert("لا توجد نسخة مطبوعة بعد. احفظ سجلًا أولًا."); return; }
+    openCustomerPrint(lastPrinted);
+  };
+
+  byId("btnCsv").onclick = function(){
+    var rows = loadArch();
+    if(!rows.length){ alert("لا يوجد بيانات للتصدير."); return; }
+    var header = ["sender","transactionType","currency","recvName","recvPhone","amount","notes","moveCode","stamp"];
+    var csv = header.join(",") + "\n";
+    for(var i=0;i<rows.length;i++){
+      var r = rows[i], line=[];
+      for(var j=0;j<header.length;j++){
+        var v = (r[header[j]]==null? "": String(r[header[j]]));
+        v = '"'+v.replace(/"/g,'""')+'"';
+        line.push(v);
+      }
+      csv += line.join(",") + "\n";
+    }
+    var blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "archive.csv"; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 500);
+  };
+
+  byId("btnDelLast").onclick = function(){
+    var arr = loadArch();
+    if(!arr.length){ alert("لا يوجد سجلات."); return; }
+    if(confirm("حذف آخر سجل؟")){
+      arr.pop();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+      renderArchive(byId("search").value||"");
+    }
+  };
+
+  // إدارة الحسابات
+  byId("btnAddAccount").onclick = function(){
+    byId("modalAddAccount").style.display = "flex";
+  };
+  byId("btnViewAccounts").onclick = function(){
+    renderAccountsList();
+    byId("modalAccountsList").style.display = "flex";
+  };
+  byId("btnSaveAccount").onclick = function(){
+    var name = byId("accountName").value.trim();
+    var phone = byId("accountPhone").value.trim();
+    
+    if(!name || !phone){
+      alert("الرجاء إدخال اسم ورقم الهاتف للحساب.");
+      return;
+    }
+    
+    saveAccount({name: name, phone: phone});
+    updateSenderDropdown();
+    byId("modalAddAccount").style.display = "none";
+    byId("accountName").value = "";
+    byId("accountPhone").value = "";
+    alert("تم إضافة الحساب بنجاح.");
+  };
+  byId("btnCancelAccount").onclick = function(){
+    byId("modalAddAccount").style.display = "none";
+  };
+  byId("btnCloseAccounts").onclick = function(){
+    byId("modalAccountsList").style.display = "none";
+  };
+  byId("btnCloseStatement").onclick = function(){
+    byId("modalAccountStatement").style.display = "none";
+  };
+  byId("btnPrintStatement").onclick = function(){
+    window.print();
+  };
+
+  byId("btnCloseCustomer").onclick = function(){
+  byId("modalCustomerPrint").style.display = "none";
+};
+byId("btnPrintCustomer").onclick = function(){
+  var printContent = byId("customerPrintContent").innerHTML;
+  var win = window.open("", "", "width=800,height=900");
+  win.document.write('<html><head><meta charset="utf-8"><title>طباعة</title></head><body>'+printContent+'<script>window.onload=function(){window.print();};<\/script></body></html>');
+  win.document.close();
+  win.print();
+};
+
+ 
+// إغلاق النوافذ المنبثقة بالنقر خارجها
+window.onclick = function(event) {
+  if (event.target.className === "modal") {
+    event.target.style.display = "none";
+  }
+};
+
+// البحث والأحداث
+byId("search").oninput = function(){ renderArchive(this.value); };
+["sender", "transactionType", "currency", "recvName", "recvPhone", "amount", "notes", "moveCode", "stamp"].forEach(function(id){
+  var el = byId(id);
+  if(el) el.oninput = setPreview;
+});
+
+// تهيئة أولية
+updateSenderDropdown();
+setPreview();
+renderArchive();
+
+// تسجيل الـ Service Worker
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js")
+    .then(() => console.log("Service Worker Registered"))
+    .catch((err) => console.log("Service Worker Failed: ", err));
+}
+
+// طلب إذن الإشعارات
+if ("Notification" in window && Notification.permission !== "granted") {
+  Notification.requestPermission().then(function(permission) {
+    if (permission === "granted") {
+      new Notification("شكراً لمنح الإذن!", {
+        body: "يمكنك الآن تلقي إشعارات من التطبيق.",
+        icon: "icon-192.png" // ✅ أيقونة موجودة فعلياً
+      });
+    }
+  });
+}
+</script>
+</body>
+</html>

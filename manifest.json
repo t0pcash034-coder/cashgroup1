@@ -1,0 +1,50 @@
+{
+  "name": "كاش كروب للحوالات",
+  "short_name": "كاش كروب",
+  "description": "تطبيق كاش كروب للحوالات المالية بسهولة وأمان.",
+  "start_url": "Zmx.html",
+  "display": "standalone",
+  "background_color": "#e6f1ff",
+  "theme_color": "#004080",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "إرسال حوالة",
+      "short_name": "إرسال",
+      "description": "إرسال حوالة جديدة بسرعة",
+      "url": "/Zmx.html",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+cashgroup",
+      "url": "/?q=%s"
+    }
+  ]
+}
