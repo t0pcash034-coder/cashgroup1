@@ -2,7 +2,7 @@
   "name": "كاش كروب للحوالات",
   "short_name": "كاش كروب",
   "description": "تطبيق كاش كروب للحوالات المالية بسهولة وأمان.",
-  "start_url": "Zmx.html",
+  "start_url": "login_fixed.html",
   "display": "standalone",
   "background_color": "#e6f1ff",
   "theme_color": "#004080",
@@ -48,4 +48,5 @@
     }
   ]
 }
+
 
