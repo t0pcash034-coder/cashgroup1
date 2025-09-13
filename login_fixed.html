@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تسجيل الدخول - كاش كروب</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{font-family:Tahoma,Arial;background:#e6f1ff;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+  .login-box{background:#fff;padding:24px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.1);width:320px;max-width:95%;text-align:center}
+  h2{margin-bottom:20px;color:#004080}
+  input{width:100%;padding:10px;margin:8px 0;border:1px solid #cfe0ff;border-radius:8px;font-size:16px;box-sizing:border-box}
+  button{width:100%;padding:10px;background:#004080;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer}
+  button:hover{background:#0a66ff}
+  .note{color:#5b6a7d;font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="login-box" role="main" aria-labelledby="lg">
+  <h2 id="lg">تسجيل الدخول</h2>
+  <input id="loginUser" placeholder="اسم المستخدم" autocomplete="username" />
+  <input id="loginPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" />
+  <button id="btnDoLogin">دخول</button>
+  <div class="note">إذا هذه أول مرة: استخدم <b>admin</b> / <b>0110</b></div>
+</div>
+
+<script>
+(function(){
+  // default redirect target (if portal exists, go there; otherwise admin)
+  var redirectTarget = "Cash_fixed4_portal.html";
+
+  // ensure default admin exists
+  function ensureAdmin(){
+    try{
+      var users = JSON.parse(localStorage.getItem("remitUsersV1")||"[]");
+      var found = users.find(function(u){ return u.username==="admin"; });
+      if(!found){
+        users.push({username:"admin", password:"0110", role:"admin"});
+        localStorage.setItem("remitUsersV1", JSON.stringify(users));
+        console.log("Admin account created: admin / 0110");
+      }
+    }catch(e){
+      console.error("ensureAdmin:", e);
+    }
+  }
+
+  function doLogin(){
+    var u = document.getElementById("loginUser").value.trim();
+    var p = document.getElementById("loginPass").value.trim();
+    if(!u || !p){
+      alert("الرجاء إدخال اسم المستخدم وكلمة المرور");
+      return;
+    }
+    var users = JSON.parse(localStorage.getItem("remitUsersV1")||"[]");
+    var found = users.find(function(x){ return x.username===u && x.password===p; });
+    if(found){
+      localStorage.setItem("currentUser", JSON.stringify(found));
+      applyPermissions(found);
+      // redirect to portal (if not found, fallback to admin page)
+      fetch(redirectTarget, {method: 'HEAD'}).then(function(){ 
+        window.location.href = redirectTarget;
+      }).catch(function(){
+        window.location.href = "Cash_fixed4_admin.html";
+      });
+    } else {
+      alert("خطأ: بيانات الدخول غير صحيحة");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    ensureAdmin();
+    var btn = document.getElementById("btnDoLogin");
+    btn.addEventListener("click", doLogin);
+    // enter key support
+    document.getElementById("loginPass").addEventListener("keydown", function(e){
+      if(e.key === "Enter"){ doLogin(); }
+    });
+    document.getElementById("loginUser").focus();
+  });
+})();
+
+
+function applyPermissions(user){
+  if(user.role !== "admin"){
+    let settingsTab = document.getElementById("settings-tab");
+    if(settingsTab){
+      settingsTab.style.display = "none";
+    }
+  }
+}
+
+</script>
+</body>
+</html>
