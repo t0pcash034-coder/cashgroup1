@@ -1,9 +1,8 @@
-const CACHE_NAME = "cashgroup-v3"; // غير الرقم إذا عدلت لاحقاً
+const CACHE_NAME = "cashgroup-v4"; // غير الرقم إذا عدلت لاحقاً
 const urlsToCache = [
   "/",
+  "/log.html",
   "/index.html",
-  "/login_fixed.html",
-  "/Cash_fixed4_admin.html",
   "/manifest.json",
   "/icon-192.png",
   "/icon-512.png"
@@ -41,3 +40,4 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
